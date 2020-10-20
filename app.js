@@ -105,6 +105,20 @@ app.post('/replies', function(req, res) {
     });
 });
 
+app.get('/signup', function(req, res) {
+    res.render('users/signup');
+});
+
+app.post('/signup', function(req, res) {
+    const values = {
+        name: req.body.name,
+        password: req.body.password
+    };
+    db.user.create(values).then(function(results) {
+        res.redirect('/messages');
+    });
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     next(createError(404));
