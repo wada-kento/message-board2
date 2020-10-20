@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+
+<body>
+    <h1>メッセージ更新</h1>
+    <form action="/messages/<%= message.id %>" method="post">
+        <input type="hidden" name="_method" value="put">
+        <input type="text" name="content" value="<%= message.content%>">
+        <input type="submit" value="更新">
+    </form>
+    <div>
+        <h2>返信する</h2>
+        <form action="/replies" method="post">
+            <input type="hidden" name="messageId" value="<%= message.id %>">
+            <input type="text" name="replyContent">
+            <input type="submit" value="作成">
+        </form>
+    </div>
+</body>
+
+</html>

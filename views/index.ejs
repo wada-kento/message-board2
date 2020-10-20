@@ -11,12 +11,30 @@
 
 <body>
     <h1>メッセージボード</h1>
+    <h1>
+        <a href="/">メッセージ一覧</a>
+    </h1>
+    <div>
+        <h2>
+            メッセージ作成
+        </h2>
+        <form action="/messages" method="post">
+            <input type="text" name="content">
+            <input type="submit" value="作成">
+        </form>
+    </div>
     <ul>
         <% messages.map(function(message) { %>
             <li>
                 <p>
                     <%= message.content %>
                 </p>
+                <a href="/messages/<%= message.id%>">詳細</a>
+                <a href="/messages/<%= message.id %>/edit">編集</a>
+                <form action="/messages/<%= message.id%>" method="post">
+                    <input type="hidden" name="_method" value="delete">
+                    <input type="submit" value="削除">
+                </form>
             </li>
             <% }); %>
     </ul>
