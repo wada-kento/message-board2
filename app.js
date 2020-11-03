@@ -3,7 +3,9 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+var session = require('express-session');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
 var app = express();
 
 // view engine setup
@@ -16,9 +18,15 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', function(req, res) {
-    res.redirect('/messages');
-});
+app.set('trust praxy', 1);
+app.use(session({
+    secret: 'keyboard cat',
+    resave: true,
+    saveUninitialized: true
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 var methodOverride = require('method-override');
 app.use(methodOverride(function(req, res) {
@@ -31,10 +39,54 @@ app.use(methodOverride(function(req, res) {
 }));
 
 const db = require('./models/index');
+passport.serializeUser((user, done) => {
+    done(null, user.id)
+});
 
+passport.deserializeUser((id, done) => {
+    db.user.findByPk(id)
+        .then(function(user) {
+            done(null, user)
+        })
+        .catch(function(error) {
+            done(error, null)
+        });
+});
+passport.use(new LocalStrategy(
+    function(name, password, done) {
+        db.user.findOne({
+                where: {
+                    name: name
+                }
+            })
+            .then(function(user) {
+                console.log(user);
+
+                if (!user) {
+                    return done(null, false, { message: '入力された名前のユーザーは存在しません。' });
+                }
+                if (user.password != password) {
+                    return done(null, false, { message: 'パスワードが一致しません。' });
+                }
+                return done(null, user);
+            })
+            .catch(function(err) {
+                if (err) { return done(err); }
+            });
+    }
+));
+
+app.get('/', function(req, res) {
+    res.redirect('/messages');
+});
+
+//メッセージ一覧
 app.get('/messages', function(req, res) {
+    if (!req.user) {
+        return res.redirect('/signin');
+    }
     db.message.findAll(req.params.id).then(function(results) {
-        res.render('index.ejs', { messages: results })
+        res.render('index.ejs', { messages: results, user: req.user });
     });
 });
 
@@ -51,7 +103,11 @@ app.post('/messages', function(req, res) {
     });
 });
 
+//個別ページ
 app.get('/messages/:id', function(req, res) {
+    if (!req.user) {
+        return res.redirect('/signin');
+    }
     const options = {
         include: [{
             model: db.reply
@@ -64,7 +120,11 @@ app.get('/messages/:id', function(req, res) {
     });
 });
 
+//メッセージ編集
 app.get('/messages/:id/edit', function(req, res) {
+    if (!req.user) {
+        return res.redirect('/signin');
+    }
     db.message.findByPk(req.params.id).then(function(results) {
         res.render('edit.ejs', { message: results });
     });
@@ -118,6 +178,16 @@ app.post('/signup', function(req, res) {
         res.redirect('/messages');
     });
 });
+
+app.get('/signin', function(req, res) {
+    res.render('users/signin');
+});
+
+app.post('/signin', passport.authenticate('local', {
+    successRedirect: '/messages',
+    failureRedirect: '/signin'
+}));
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
