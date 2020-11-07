@@ -10,11 +10,13 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            message.hasMany(models.reply)
+            message.hasMany(models.reply);
+            message.belongsTo(models.user);
         };
     };
     message.init({
         content: DataTypes.STRING,
+        user_id: DataTypes.INTEGER
     }, {
         sequelize,
         modelName: 'message',

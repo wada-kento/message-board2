@@ -6,6 +6,7 @@ var logger = require('morgan');
 var session = require('express-session');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require('bcrypt');
 var app = express();
 
 // view engine setup
@@ -52,6 +53,7 @@ passport.deserializeUser((id, done) => {
             done(error, null)
         });
 });
+//passport.authenticateで使う認証部分
 passport.use(new LocalStrategy(
     function(name, password, done) {
         db.user.findOne({
@@ -61,13 +63,17 @@ passport.use(new LocalStrategy(
             })
             .then(function(user) {
                 console.log(user);
-
+                //名前をチェックして、存在しなかったらストップ
                 if (!user) {
                     return done(null, false, { message: '入力された名前のユーザーは存在しません。' });
                 }
-                if (user.password != password) {
-                    return done(null, false, { message: 'パスワードが一致しません。' });
-                }
+                //パスワードチェックして、一致しなかったらストップ
+                bcrypt.compare(password, user.password, function(error, results) {
+                    if (!results) {
+                        return done(null, false, { message: 'パスワードが一致しません。' });
+                    }
+                });
+                //上2つを潜り抜けたログインできる
                 return done(null, user);
             })
             .catch(function(err) {
@@ -85,7 +91,12 @@ app.get('/messages', function(req, res) {
     if (!req.user) {
         return res.redirect('/signin');
     }
-    db.message.findAll(req.params.id).then(function(results) {
+    const options = {
+        include: [{
+            model: db.user
+        }]
+    };
+    db.message.findAll(options).then(function(results) {
         res.render('index.ejs', { messages: results, user: req.user });
     });
 });
@@ -94,9 +105,11 @@ app.get('/messages/new', function(req, res) {
     res.render('new.ejs');
 });
 
+//メッセージ作成
 app.post('/messages', function(req, res) {
     const values = {
         content: req.body.content,
+        user_id: req.user.id
     };
     db.message.create(values).then(function(results) {
         res.redirect('/messages')
@@ -110,14 +123,18 @@ app.get('/messages/:id', function(req, res) {
     }
     const options = {
         include: [{
-            model: db.reply
+            model: db.reply,
+            include: [{
+                model: db.user
+            }]
         }]
-    }
+    };
     db.message.findByPk(req.params.id, options).then(function(results) {
         res.render('show.ejs', {
             message: results
         })
     });
+
 });
 
 //メッセージ編集
@@ -158,9 +175,10 @@ app.delete('/messages/:id', function(req, res) {
 app.post('/replies', function(req, res) {
     const values = {
         content: req.body.replyContent,
-        message_id: req.body.messageId
+        message_id: req.body.messageId,
+        user_id: req.user.id
     };
-    db.reply.create(values).then(function(results) {
+    db.reply.create(values, options).then(function(results) {
         res.redirect('/messages/' + req.body.messageId)
     });
 });
@@ -169,14 +187,17 @@ app.get('/signup', function(req, res) {
     res.render('users/signup');
 });
 
+//ユーザー作成
 app.post('/signup', function(req, res) {
-    const values = {
-        name: req.body.name,
-        password: req.body.password
-    };
-    db.user.create(values).then(function(results) {
-        res.redirect('/messages');
-    });
+    bcrypt.hash(req.body.password, 10, function(error, hashedPassword) {
+        const values = {
+            name: req.body.name,
+            password: hashedPassword
+        };
+        db.user.create(values).then(function(results) {
+            res.redirect('/messages');
+        });
+    })
 });
 
 app.get('/signin', function(req, res) {

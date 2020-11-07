@@ -31,7 +31,8 @@
         <% messages.map(function(message) { %>
             <li>
                 <p>
-                    <%= message.content %>
+                    <%= message.content %> by
+                        <%= message.user.name %>
                 </p>
                 <a href="/messages/<%= message.id%>">詳細</a>
                 <a href="/messages/<%= message.id %>/edit">編集</a>
