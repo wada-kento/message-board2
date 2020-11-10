@@ -177,7 +177,7 @@ app.post('/replies', function(req, res) {
         message_id: req.body.messageId,
         user_id: req.user.id
     };
-    db.reply.create(values, options).then(function(results) {
+    db.reply.create(values).then(function(results) {
         res.redirect('/messages/' + req.body.messageId)
     });
 });
