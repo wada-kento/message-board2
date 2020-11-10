@@ -53,7 +53,7 @@ passport.deserializeUser((id, done) => {
             done(error, null)
         });
 });
-//passport.authenticateで使う認証部分
+// passport.authenticateで使用する認証部分
 passport.use(new LocalStrategy(
     function(name, password, done) {
         db.user.findOne({
@@ -62,18 +62,17 @@ passport.use(new LocalStrategy(
                 }
             })
             .then(function(user) {
-                console.log(user);
-                //名前をチェックして、存在しなかったらストップ
+                // 名前チェックして、存在しなかったらストップ
                 if (!user) {
                     return done(null, false, { message: '入力された名前のユーザーは存在しません。' });
                 }
-                //パスワードチェックして、一致しなかったらストップ
-                bcrypt.compare(password, user.password, function(error, results) {
-                    if (!results) {
+                // パスワードチェックして、一致しなかったらストップ
+                bcrypt.compare(password, user.password, function(error, result) {
+                    if (!result) {
                         return done(null, false, { message: 'パスワードが一致しません。' });
                     }
                 });
-                //上2つを潜り抜けたログインできる
+                // 上2つを潜り抜けたらログインできる
                 return done(null, user);
             })
             .catch(function(err) {
