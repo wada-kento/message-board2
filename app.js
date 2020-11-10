@@ -199,8 +199,10 @@ app.post('/signup', function(req, res) {
     })
 });
 
+require('dotenv').config();
 app.get('/signin', function(req, res) {
-    res.render('users/signin');
+    res.send(process.env.MESSAGE);
+    //res.render('users/signin');
 });
 
 app.post('/signin', passport.authenticate('local', {
