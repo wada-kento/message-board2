@@ -144,6 +144,7 @@ app.get('/messages/:id/edit', function(req, res) {
     db.message.findByPk(req.params.id).then(function(results) {
         res.render('edit.ejs', { message: results });
     });
+
 });
 
 app.put('/messages/:id', function(req, res) {
