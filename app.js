@@ -210,6 +210,8 @@ app.post('/signin', passport.authenticate('local', {
     failureRedirect: '/signin'
 }));
 
+//いいね
+app.get('')
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
