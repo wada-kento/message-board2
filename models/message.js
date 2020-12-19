@@ -10,8 +10,8 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            message.hasMany(models.reply);
             message.belongsTo(models.user);
+            message.hasMany(models.reply);
             message.belongsToMany(models.user, { through: models.user_message_like });
         };
     };
