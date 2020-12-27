@@ -85,133 +85,14 @@ app.get('/', function(req, res) {
     res.redirect('/messages');
 });
 
-//メッセージ一覧
-app.get('/messages', function(req, res) {
-    if (!req.user) {
-        return res.redirect('/signin');
-    }
-    const options = {
-        include: [{
-            model: db.user
-        }]
-    };
-    db.message.findAll(options).then(function(results) {
-        res.render('index.ejs', { messages: results, user: req.user });
-    });
-});
 
-app.get('/messages/new', function(req, res) {
-    res.render('new.ejs');
-});
-
-//メッセージ作成
-app.post('/messages', function(req, res) {
-    const values = {
-        content: req.body.content,
-        user_id: req.user.id
-    };
-    db.message.create(values).then(function(results) {
-        res.redirect('/messages')
-    });
-});
-
-//個別ページ
-app.get('/messages/:id', function(req, res) {
-    if (!req.user) {
-        return res.redirect('/signin');
-    }
-    const options = {
-        include: [{
-            model: db.reply,
-            include: [{
-                model: db.user
-            }]
-        }]
-    };
-    db.message.findByPk(req.params.id, options).then(function(results) {
-        res.render('show.ejs', {
-            message: results
-        })
-    });
-
-});
-
-//メッセージ編集
-app.get('/messages/:id/edit', function(req, res) {
-    if (!req.user) {
-        return res.redirect('/signin');
-    }
-    db.message.findByPk(req.params.id).then(function(results) {
-        res.render('edit.ejs', { message: results });
-    });
-
-});
-
-app.put('/messages/:id', function(req, res) {
-    const values = {
-        content: req.body.content
-    };
-    const options = {
-        where: {
-            id: req.params.id
-        }
-    };
-    db.message.update(values, options).then(function(results) {
-        res.redirect('/messages');
-    });
-});
-
-app.delete('/messages/:id', function(req, res) {
-    const options = {
-        where: {
-            id: req.params.id
-        }
-    };
-    db.message.destroy(options).then(function(results) {
-        res.redirect('/messages')
-    });
-});
-
-app.post('/replies', function(req, res) {
-    const values = {
-        content: req.body.replyContent,
-        message_id: req.body.messageId,
-        user_id: req.user.id
-    };
-    db.reply.create(values).then(function(results) {
-        res.redirect('/messages/' + req.body.messageId)
-    });
-});
-
-app.get('/signup', function(req, res) {
-    res.render('users/signup');
-});
-
-//ユーザー作成
-app.post('/signup', function(req, res) {
-    bcrypt.hash(req.body.password, 10, function(error, hashedPassword) {
-        const values = {
-            name: req.body.name,
-            password: hashedPassword
-        };
-        db.user.create(values).then(function(results) {
-            res.redirect('/messages');
-        });
-    })
-});
-
-require('dotenv').config();
-app.get('/signin', function(req, res) {
-    res.render('users/signin');
-});
-
-app.post('/signin', passport.authenticate('local', {
-    successRedirect: '/messages',
-    failureRedirect: '/signin'
-}));
-
-//いいね
-app.get('')
+//router
+const messagesRouter = require('./routes/messages');
+app.use('/', messagesRouter);
+const repliesRouter = require('./routes/replies');
+app.use('/replies', repliesRouter);
+const usersRouter = require('./routes/users');
+app.use('/', usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
