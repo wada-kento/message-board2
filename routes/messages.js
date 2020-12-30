@@ -92,4 +92,22 @@ router.delete('/messages/:id', function(req, res) {
     });
 });
 
+router.post('/messages/like', function(req, res) {
+    if (!req.user) {
+        res.redirect('/signin');
+        return;
+    }
+    const values = {
+        user_id: req.user.id,
+        message_id: req.body.messageId
+    }
+    const options = {
+        fields: ['user_id', 'message_id']
+    };
+    db.user_message_like.create(values, options).then(function(results) {
+        res.redirect('/messages');
+    });
+});
+
+
 module.exports = router;

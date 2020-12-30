@@ -85,7 +85,6 @@ app.get('/', function(req, res) {
     res.redirect('/messages');
 });
 
-
 //router
 const messagesRouter = require('./routes/messages');
 app.use('/', messagesRouter);

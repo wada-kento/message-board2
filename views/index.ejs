@@ -36,6 +36,10 @@
                 </p>
                 <a href="/messages/<%= message.id%>">詳細</a>
                 <a href="/messages/<%= message.id %>/edit">編集</a>
+                <form action="/messages/like" method="post">
+                    <input type="hidden" name="messageId" value="<%= message.id %>">
+                    <input type="submit" value="いいね">
+                </form>
                 <form action="/messages/<%= message.id%>" method="post">
                     <input type="hidden" name="_method" value="delete">
                     <input type="submit" value="削除">
