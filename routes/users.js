@@ -30,4 +30,19 @@ router.post('/signin', passport.authenticate('local', {
     failureRedirect: '/signin'
 }));
 
+router.get('/users/:id/likes', function(req, res) {
+    const options = {
+        include: [{
+            model: db.message,
+            through: db.user_message_like,
+            as: 'likes'
+        }]
+    };
+    db.user.findByPk(req.params.id, options).then(function(results) {
+        res.render('users/likes.ejs', {
+            user: results,
+            currentUser: req.user
+        });
+    });
+});
 module.exports = router;

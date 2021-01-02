@@ -1,0 +1,16 @@
+<%- include('../partials/header'); %>
+    <h1>
+        <%=user.name %>
+    </h1>
+    <h2>いいね</h2>
+    <ul>
+        <% user.likes.map(function(message){ %>
+            <li>
+                <a href="/messages/<%= message.id %>">
+                    <%= message.content %>
+                </a>
+            </li>
+            <% }) %>
+    </ul>
+    <a href="/users/<%= user.id %>">このユーザーの投稿一覧へ</a>
+    <%- include('../partials/footer'); %>
